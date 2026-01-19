@@ -11,6 +11,21 @@ services:
       - "5432:5432"
     volumes:
       - postgres-data:/var/lib/postgresql/data
+    networks:
+      - microservices-network
+
+  # API Gateway - ONLY service exposed to outside
+  gateway:
+    build: ./gateway
+    ports:
+      - "8080:8080"  # Only gateway is exposed!
+    depends_on:
+      - order-service
+      - payment-service
+      - inventory-service
+      - notification-service
+    networks:
+      - microservices-network
 
   order-service:
     build: ./order-service
@@ -21,23 +36,32 @@ services:
       SPRING_DATASOURCE_USERNAME: admin
       SPRING_DATASOURCE_PASSWORD: admin
       PAYMENT_SERVICE_URL: http://payment-service:8080
+      INVENTORY_SERVICE_URL: http://inventory-service:8080
+      NOTIFICATION_SERVICE_URL: http://notification-service:8080
     depends_on:
       - postgres
+    networks:
+      - microservices-network
 
   payment-service:
     build: ./payment-service
-    ports:
-      - "8082:8080"
+    networks:
+      - microservices-network
 
   inventory-service:
     build: ./inventory-service
-    ports:
-      - "8083:8080"
+    networks:
+      - microservices-network
 
   notification-service:
     build: ./notification-service
-    ports:
-      - "8084:8080"
+    # NO ports - internal only
+    networks:
+      - microservices-network
 
 volumes:
   postgres-data:
+
+networks:
+  microservices-network:
+    driver: bridge
