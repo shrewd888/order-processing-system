@@ -10,6 +10,11 @@ spring:
             - Path=/orders,/orders/**
           filters:
             - RewritePath=/orders(?<segment>/?.*), /api/orders$\{segment}
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10  # tokens per second
+                redis-rate-limiter.burstCapacity: 20  # max burst
+                redis-rate-limiter.requestedTokens: 1 # tokens per request
 
         - id: payment-service
           uri: http://payment-service:8080
@@ -17,6 +22,11 @@ spring:
             - Path=/payments,/payments/**
           filters:
             - RewritePath=/payments(?<segment>/?.*), /api/payments$\{segment}
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
 
         - id: inventory-service
           uri: http://inventory-service:8080
@@ -24,6 +34,11 @@ spring:
             - Path=/inventory,/inventory/**
           filters:
             - RewritePath=/inventory(?<segment>/?.*), /api/inventory$\{segment}
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
 
         - id: notification-service
           uri: http://notification-service:8080
@@ -31,6 +46,11 @@ spring:
             - Path=/notifications,/notifications/**
           filters:
             - RewritePath=/notifications(?<segment>/?.*), /api/notifications$\{segment}
+            - name: RequestRateLimiter
+              args:
+                redis-rate-limiter.replenishRate: 10
+                redis-rate-limiter.burstCapacity: 20
+                redis-rate-limiter.requestedTokens: 1
 
 server:
   port: 8080
@@ -38,4 +58,3 @@ server:
 logging:
   level:
     org.springframework.cloud.gateway: DEBUG
-    reactor.netty: DEBUG

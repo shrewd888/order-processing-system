@@ -1,6 +1,13 @@
 version: '3.8'
 
 services:
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    networks:
+      - microservices-network
+      
   postgres:
     image: postgres:15
     environment:
@@ -20,6 +27,7 @@ services:
     ports:
       - "8080:8080"  # Only gateway is exposed!
     depends_on:
+      - redis
       - order-service
       - payment-service
       - inventory-service
