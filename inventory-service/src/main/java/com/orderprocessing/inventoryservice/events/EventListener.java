@@ -1,6 +1,8 @@
 package com.orderprocessing.inventoryservice.events;
 
 import org.springframework.kafka.annotation.KafkaListener;
+import org.springframework.kafka.support.KafkaHeaders;
+import org.springframework.messaging.handler.annotation.Header;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
@@ -20,8 +22,10 @@ public class EventListener {
             properties = {
                     "spring.json.value.default.type=com.orderprocessing.inventoryservice.events.OrderCreatedEvent"
             })
-    public void handleOrderCreated(@Payload OrderCreatedEvent event) {
-        log.info("📥 Received OrderCreatedEvent: {}", event);
+    public void handleOrderCreated(@Payload OrderCreatedEvent event,
+                                   @Header(KafkaHeaders.RECEIVED_PARTITION) int partition)
+    {
+        log.info("📥 Received OrderCreatedEvent from partition {}: {}", partition, event);
 
         // Simulate inventory reservation logic
         boolean reserved = reserveInventory(event.getOrderId());

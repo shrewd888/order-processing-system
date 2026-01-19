@@ -12,8 +12,12 @@ public class EventPublisher {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public void publishInventoryReserved(InventoryReservedEvent event) {
-        log.info("📦 Publishing InventoryReservedEvent: {}", event);
-        kafkaTemplate.send("inventory-reserved", event);
+    public void publishInventoryReserved(InventoryReservedEvent event)
+    {
+        String key = event.getOrderId().toString();
+
+        log.info("📦 Publishing InventoryReservedEvent with key {}: {}", key, event);
+
+        kafkaTemplate.send("inventory-reserved", key, event);
     }
 }

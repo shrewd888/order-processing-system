@@ -11,7 +11,7 @@ public class KafkaConfig {
     @Bean
     public NewTopic paymentSuccessTopic() {
         return TopicBuilder.name("payment-success")
-                .partitions(1)
+                .partitions(3)
                 .replicas(1)
                 .build();
     }
@@ -19,7 +19,7 @@ public class KafkaConfig {
     @Bean
     public NewTopic paymentFailedTopic() {
         return TopicBuilder.name("payment-failed")
-                .partitions(1)
+                .partitions(3)
                 .replicas(1)
                 .build();
     }

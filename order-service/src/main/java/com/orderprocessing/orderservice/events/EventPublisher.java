@@ -12,8 +12,14 @@ public class EventPublisher {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public void publishOrderCreated(OrderCreatedEvent event) {
-        log.info("📤 Publishing OrderCreatedEvent: {}", event);
-        kafkaTemplate.send("order-created", event);
+    public void publishOrderCreated(OrderCreatedEvent event)
+    {
+        String key = event.getOrderId().toString();  // Use orderId as key
+
+        log.info("📤 Publishing OrderCreatedEvent with key {}: {}", key, event);
+
+        kafkaTemplate.send("order-created", key, event);
+
+        log.debug("✅ Event sent to partition determined by key: {}", key);
     }
 }

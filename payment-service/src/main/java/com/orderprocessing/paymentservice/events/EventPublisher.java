@@ -12,13 +12,17 @@ public class EventPublisher {
 
     private final KafkaTemplate<String, Object> kafkaTemplate;
 
-    public void publishPaymentSuccess(PaymentSuccessEvent event) {
-        log.info("💳 Publishing PaymentSuccessEvent: {}", event);
-        kafkaTemplate.send("payment-success", event);
+    public void publishPaymentSuccess(PaymentSuccessEvent event)
+    {
+        String key = event.getOrderId().toString();  // Use orderId as key
+        log.info("💳 Publishing PaymentSuccessEvent with key {}: {}", key, event);
+        kafkaTemplate.send("payment-success", key, event);
     }
 
-    public void publishPaymentFailed(PaymentFailedEvent event) {
-        log.error("💥 Publishing PaymentFailedEvent: {}", event);
-        kafkaTemplate.send("payment-failed", event);
+    public void publishPaymentFailed(PaymentFailedEvent event)
+    {
+        String key = event.getOrderId().toString();  // Use orderId as key
+        log.error("💥 Publishing PaymentFailedEvent with key {}: {}", key, event);
+        kafkaTemplate.send("payment-failed", key, event);
     }
 }
