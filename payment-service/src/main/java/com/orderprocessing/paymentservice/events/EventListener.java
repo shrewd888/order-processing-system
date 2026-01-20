@@ -6,6 +6,7 @@ import org.springframework.stereotype.Component;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -50,6 +51,7 @@ public class EventListener {
             log.error("❌ Payment failed for order: {}", event.getOrderId());
 
             PaymentFailedEvent failedEvent = new PaymentFailedEvent(
+                    UUID.randomUUID().toString(),
                     event.getOrderId(),
                     "Insufficient funds", // Simulated reason
                     LocalDateTime.now().toString()

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class PaymentFailedEvent {
+    private String eventId;
     private Long orderId;
     private String reason;
     private String timestamp;

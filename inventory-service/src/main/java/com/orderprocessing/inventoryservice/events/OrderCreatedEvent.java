@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class OrderCreatedEvent {
+public class OrderCreatedEvent
+{
+    private String eventId;
     private Long orderId;
     private String customerName;
     private Double totalAmount;

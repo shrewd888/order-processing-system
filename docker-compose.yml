@@ -26,6 +26,11 @@ services:
       KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT,PLAINTEXT_HOST:PLAINTEXT
       KAFKA_INTER_BROKER_LISTENER_NAME: PLAINTEXT
       KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    healthcheck:
+      test: [ "CMD", "kafka-broker-api-versions", "--bootstrap-server", "localhost:29092" ]
+      interval: 10s
+      timeout: 10s
+      retries: 5
     networks:
       - microservices-network
 
@@ -45,7 +50,7 @@ services:
     ports:
       - "5432:5432"
     volumes:
-      - postgres-data:/var/lib/postgresql/data
+      - ./postgres-init:/docker-entrypoint-initdb.d #  This "./" means "relative to docker-compose.yml location"
     networks:
       - microservices-network
 
@@ -76,22 +81,49 @@ services:
       NOTIFICATION_SERVICE_URL: http://notification-service:8080
     depends_on:
       - postgres
+      - kafka
+    restart: on-failure  # ← Restart if fails
     networks:
       - microservices-network
 
   payment-service:
     build: ./payment-service
+    ports:
+      - "8082:8080"
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      - kafka
+    restart: on-failure  # ← Restart if fails
     networks:
       - microservices-network
 
   inventory-service:
     build: ./inventory-service
+    ports:
+      - "8083:8080"
+    environment:
+      SPRING_DATASOURCE_URL: jdbc:postgresql://postgres:5432/inventory_db
+      SPRING_DATASOURCE_USERNAME: admin
+      SPRING_DATASOURCE_PASSWORD: admin
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      postgres:
+        condition: service_started
+      kafka: # ← IMPORTANT: Must depend on kafka
+        condition: service_started # ← WAIT for Kafka to be healthy
     networks:
       - microservices-network
 
   notification-service:
     build: ./notification-service
-    # NO ports - internal only
+    ports:
+      - "8084:8080"
+    environment:
+      SPRING_KAFKA_BOOTSTRAP_SERVERS: kafka:29092
+    depends_on:
+      - kafka
+    restart: on-failure  # ← Restart if fails
     networks:
       - microservices-network
 

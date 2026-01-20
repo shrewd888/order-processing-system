@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.web.client.RestTemplate;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Service
 public class OrderService {
@@ -38,6 +39,7 @@ public class OrderService {
 
         // Publish event instead of calling services directly
         OrderCreatedEvent event = new OrderCreatedEvent(
+                UUID.randomUUID().toString(),
                 order.getId(),
                 order.getCustomerName(),
                 order.getTotalAmount(),
