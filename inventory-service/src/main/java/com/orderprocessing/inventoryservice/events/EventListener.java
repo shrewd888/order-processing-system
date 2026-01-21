@@ -13,6 +13,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Component
 @RequiredArgsConstructor
@@ -37,6 +38,7 @@ public class EventListener {
         log.info("📥 Received OrderCreatedEvent from partition {}: {}", partition, event);
 
         String eventId = event.getEventId();
+        Long orderId = event.getOrderId();
 
         // Step 1: Check if already processed
         if (processedEventRepository.existsById(eventId)) {
@@ -54,10 +56,11 @@ public class EventListener {
                 log.warn("❌ Inventory reservation failed for order: {}", event.getOrderId());
             }
 
-            saveProcessedEvent(eventId, "OrderCreatedEvent");
+            saveProcessedEvent(orderId, eventId, "OrderCreatedEvent");
 
             // Publish InventoryReserved event
             InventoryReservedEvent reservedEvent = new InventoryReservedEvent(
+                    UUID.randomUUID().toString(),
                     event.getOrderId(),
                     reserved,
                     LocalDateTime.now().toString()
@@ -85,6 +88,7 @@ public class EventListener {
         log.warn("💥 COMPENSATION: Releasing inventory for order: {}", event.getOrderId());
 
         String eventId = event.getEventId();
+        Long orderId = event.getOrderId();
 
         if (processedEventRepository.existsById(eventId))
         {
@@ -93,9 +97,9 @@ public class EventListener {
         }
         try {
             // Release the reserved inventory (compensation logic!)
-            releaseInventory(event.getOrderId());
+            releaseInventory(orderId);
             // Mark as processed
-            saveProcessedEvent(eventId, "PaymentFailedEvent");
+            saveProcessedEvent(orderId, eventId, "PaymentFailedEvent");
 
             log.info("✅ Inventory released for order: {}", event.getOrderId());
         }
@@ -117,9 +121,10 @@ public class EventListener {
         log.info("🔓 Releasing inventory for order: {}", orderId);
     }
 
-    private void saveProcessedEvent(String eventId, String eventType) {
+    private void saveProcessedEvent(Long orderId, String eventId, String eventType) {
         ProcessedEvent processed = new ProcessedEvent(
                 eventId,
+                orderId,
                 eventType,
                 LocalDateTime.now(),
                 "inventory-service"

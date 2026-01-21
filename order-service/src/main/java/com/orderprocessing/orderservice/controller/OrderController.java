@@ -1,8 +1,8 @@
 package com.orderprocessing.orderservice.controller;
 
-import com.orderprocessing.orderservice.Order;
+import com.orderprocessing.orderservice.entity.Order;
 import com.orderprocessing.orderservice.OrderRepository;
-import com.orderprocessing.orderservice.OrderService;
+import com.orderprocessing.orderservice.service.OrderService;
 import com.orderprocessing.orderservice.events.EventPublisher;
 import com.orderprocessing.orderservice.events.OrderCreatedEvent;
 import org.springframework.beans.factory.annotation.Autowired;

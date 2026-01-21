@@ -1,7 +1,7 @@
 package com.orderprocessing.orderservice.events;
 
-import com.orderprocessing.orderservice.Order;
 import com.orderprocessing.orderservice.OrderRepository;
+import com.orderprocessing.orderservice.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.kafka.annotation.KafkaListener;
 import org.springframework.messaging.handler.annotation.Payload;
@@ -10,10 +10,10 @@ import lombok.extern.slf4j.Slf4j;
 
 @Component
 @Slf4j
-public class EventListener {
+public class PaymentEventListener {
 
     @Autowired
-    private OrderRepository orderRepository;
+    private OrderService orderService;
 
     @KafkaListener(
             topics = "payment-success",
@@ -23,15 +23,18 @@ public class EventListener {
                     "spring.json.value.default.type=com.orderprocessing.orderservice.events.PaymentSuccessEvent"
             }
     )
-    public void handlePaymentSuccess(@Payload PaymentSuccessEvent event) {
-        log.info("📥 Received PaymentSuccessEvent: {}", event);
+    public void handlePaymentSuccess(@Payload PaymentSuccessEvent event)
+    {
+        log.info("📥 Received PaymentSuccessEvent for order {}", event.getOrderId());
 
-        // Update order status to CONFIRMED
-        orderRepository.findById(event.getOrderId()).ifPresent(order -> {
-            order.setStatus("CONFIRMED");
-            orderRepository.save(order);
-            log.info("✅ Order #{} status updated to CONFIRMED", event.getOrderId());
-        });
+        try
+        {
+            orderService.handlePaymentSuccess(event.getOrderId());
+        }
+        catch(IllegalStateException e)
+        {
+            log.error("handlePaymentSuccess state transition error: {}", e.getMessage());
+        }
     }
 
     @KafkaListener(
@@ -43,13 +46,15 @@ public class EventListener {
             }
     )
     public void handlePaymentFailed(@Payload PaymentFailedEvent event) {
-        log.info("📥 Received PaymentFailedEvent: {}", event);
+        log.info("📥 Received PaymentFailedEvent for order: {}", event.getOrderId());
 
-        // Update order status to FAILED
-        orderRepository.findById(event.getOrderId()).ifPresent(order -> {
-            order.setStatus("FAILED - " + event.getReason());
-            orderRepository.save(order);
-            log.error("❌ Order #{} status updated to FAILED", event.getOrderId());
-        });
+        try
+        {
+            orderService.handlePaymentFailure(event.getOrderId());
+        }
+        catch (IllegalStateException e)
+        {
+            log.error("State transition error: {}", e.getMessage());
+        }
     }
 }

@@ -8,6 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class InventoryReservedEvent {
+    private String eventId;
     private Long orderId;
     private boolean reserved;
     private String timestamp;

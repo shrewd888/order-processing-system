@@ -1,4 +1,4 @@
-package com.orderprocessing.inventoryservice.entity;
+package com.orderprocessing.paymentservice.entity;
 
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -14,8 +14,12 @@ import java.time.LocalDateTime;
 public class ProcessedEvent {
     @Id
     private String eventId;
+
     private Long orderId;
+
     private String eventType;
+
     private LocalDateTime processedAt;
+
     private String consumerService;
 }
