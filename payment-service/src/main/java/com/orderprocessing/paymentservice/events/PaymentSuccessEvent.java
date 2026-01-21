@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class PaymentSuccessEvent {
+public class PaymentSuccessEvent
+{
+    private String correlationId;
     private Long orderId;
     private Double amount;
     private String timestamp;

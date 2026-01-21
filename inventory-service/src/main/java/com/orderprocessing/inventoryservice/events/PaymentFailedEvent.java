@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class PaymentFailedEvent
 {
+    private String correlationId;
     private String eventId;
     private Long orderId;
     private String reason;

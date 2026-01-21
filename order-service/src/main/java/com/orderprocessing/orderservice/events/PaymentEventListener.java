@@ -25,15 +25,21 @@ public class PaymentEventListener {
     )
     public void handlePaymentSuccess(@Payload PaymentSuccessEvent event)
     {
-        log.info("📥 Received PaymentSuccessEvent for order {}", event.getOrderId());
+        log.info("[{}] 📥 Received PaymentSuccessEvent for order {}", event.getCorrelationId(), event.getOrderId());
 
         try
         {
-            orderService.handlePaymentSuccess(event.getOrderId());
+            orderService.handlePaymentSuccess(event.getCorrelationId(), event.getOrderId());
         }
         catch(IllegalStateException e)
         {
-            log.error("handlePaymentSuccess state transition error: {}", e.getMessage());
+            log.error("[{}] ❌ State transition error: {}",
+                    event.getCorrelationId(), e.getMessage());
+        }
+        catch (Exception e)
+        {
+            log.error("[{}] ❌ Error handling PaymentSuccessEvent: {}",
+                    event.getCorrelationId(), e.getMessage(), e);
         }
     }
 
@@ -46,15 +52,21 @@ public class PaymentEventListener {
             }
     )
     public void handlePaymentFailed(@Payload PaymentFailedEvent event) {
-        log.info("📥 Received PaymentFailedEvent for order: {}", event.getOrderId());
+        log.info("[{}] 📥 Received PaymentFailedEvent for order: {}", event.getCorrelationId(), event.getOrderId());
 
         try
         {
-            orderService.handlePaymentFailure(event.getOrderId());
+            orderService.handlePaymentFailure(event.getCorrelationId(), event.getOrderId());
         }
         catch (IllegalStateException e)
         {
-            log.error("State transition error: {}", e.getMessage());
+            log.error("[{}] ❌ State transition error: {}",
+                    event.getCorrelationId(), e.getMessage());
+        }
+        catch (Exception e)
+        {
+            log.error("[{}] ❌ Error handling PaymentFailedEvent: {}",
+                    event.getCorrelationId(), e.getMessage(), e);
         }
     }
 }

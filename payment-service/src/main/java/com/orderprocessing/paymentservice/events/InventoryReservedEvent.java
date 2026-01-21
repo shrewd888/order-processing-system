@@ -7,7 +7,9 @@ import lombok.NoArgsConstructor;
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-public class InventoryReservedEvent {
+public class InventoryReservedEvent
+{
+    private String correlationId;
     private String eventId;
     private Long orderId;
     private boolean reserved;

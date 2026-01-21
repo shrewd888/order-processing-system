@@ -39,45 +39,50 @@ public class EventListener {
             }
     )
     @Transactional
-    public void handleInventoryReserved(@Payload InventoryReservedEvent event) {
-        log.info("📥 Received InventoryReservedEvent: {}", event);
+    public void handleInventoryReserved(@Payload InventoryReservedEvent event)
+    {
+        String correlationId = event.getCorrelationId();
         Long orderId = event.getOrderId();
         String eventId = event.getEventId();
 
-        // ← ADD IDEMPOTENCY CHECK
+        log.info("[{}] 📥 Received InventoryReservedEvent for order: {}", correlationId, orderId);
+
+        // Idempotency check
         if (processedEventRepository.existsById(eventId)) {
-            log.warn("🔁 Duplicate InventoryReservedEvent detected: {}. Skipping.", eventId);
+            log.warn("[{}] 🔁 Duplicate InventoryReservedEvent detected: {}. Skipping.", correlationId, eventId);
             return;
         }
 
         if (!event.isReserved()) {
-            log.warn("⚠️ Inventory not reserved, skipping payment for order: {}", event.getOrderId());
+            log.warn("[{}] ⚠️ Inventory not reserved, skipping payment for order: {}", correlationId, orderId);
             return;
         }
 
         // Simulate payment processing
         // For demo: orders with even IDs succeed, odd IDs fail
         try {
-            boolean paymentSuccess = processPayment(event.getOrderId());
-            // ← Mark as processed AFTER successful processing
-            saveProcessedEvent(orderId, eventId, "InventoryReservedEvent");
+            boolean paymentSuccess = processPayment(correlationId, orderId);
+            //Mark as processed AFTER successful processing
+            saveProcessedEvent(correlationId, orderId, eventId, "InventoryReservedEvent");
 
             if (paymentSuccess) {
-                log.info("✅ Payment successful for order: {}", event.getOrderId());
+                log.info("[{}] ✅ Payment successful for order: {}", correlationId, orderId);
 
                 PaymentSuccessEvent successEvent = new PaymentSuccessEvent(
-                        event.getOrderId(),
+                        correlationId,
+                        orderId,
                         100.0, // Simulated amount
                         LocalDateTime.now().toString()
                 );
                 eventPublisher.publishPaymentSuccess(successEvent);
 
             } else {
-                log.error("❌ Payment failed for order: {}", event.getOrderId());
+                log.error("[{}] ❌ Payment failed for order: {}", correlationId, orderId);
 
                 PaymentFailedEvent failedEvent = new PaymentFailedEvent(
+                        correlationId,
                         UUID.randomUUID().toString(),
-                        event.getOrderId(),
+                        orderId,
                         "Insufficient funds", // Simulated reason
                         LocalDateTime.now().toString()
                 );
@@ -86,14 +91,14 @@ public class EventListener {
         }
         catch (Exception e)
         {
-            log.error("❌ Error processing InventoryReservedEvent for order {}: {}",
-                    event.getOrderId(), e.getMessage());
+            log.error("[{}] ❌ Error processing InventoryReservedEvent for order {}: {}",
+                    correlationId, orderId, e.getMessage());
             throw e;  // Don't mark as processed on failure
         }
     }
 
-    private boolean processPayment(Long orderId) {
-        log.info("💳 Processing payment for order: {}", orderId);
+    private boolean processPayment(String correlationId, Long orderId) {
+        log.info("[{}] 💳 Processing payment for order: {}", correlationId, orderId);
 
         // Simulate payment logic:
         // Even order IDs = success
@@ -101,15 +106,15 @@ public class EventListener {
         boolean success = (orderId % 2 == 0);
 
         if (success) {
-            log.info("💰 Payment charged successfully");
+            log.info("[{}] 💰 Payment charged successfully", correlationId);
         } else {
-            log.error("💸 Payment declined - insufficient funds");
+            log.error("[{}] 💸 Payment declined - insufficient funds", correlationId);
         }
 
         return success;
     }
 
-    private void saveProcessedEvent(Long orderId, String eventId, String eventType) {
+    private void saveProcessedEvent(String correlationId, Long orderId, String eventId, String eventType) {
         ProcessedEvent processed = new ProcessedEvent(
                 eventId,
                 orderId,
@@ -118,6 +123,6 @@ public class EventListener {
                 "payment-service"
         );
         processedEventRepository.save(processed);
-        log.info("✅ Marked event {} as processed", eventId);
+        log.info("[{}] ✅ Marked event {} as processed", correlationId, eventId);
     }
 }

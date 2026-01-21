@@ -42,14 +42,18 @@ public class OrderService {
     @Transactional
     public Order processOrder(Order order)
     {
+        // Generate correlation ID for distributed tracing
+        String correlationId = "corr-" + UUID.randomUUID().toString();
+
         // New orders always start in PENDING state
         order.setState(OrderState.PENDING);
         order = orderRepository.save(order);
 
-        log.info("🛒 Order created: {} in state: {}", order.getId(), order.getState());
+        log.info("[{}] 🛒 Order created: {} in state: {}", correlationId, order.getId(), order.getState());
         // Publish OrderCreatedEvent
         String eventId = UUID.randomUUID().toString();
         OrderCreatedEvent event = new OrderCreatedEvent(
+                correlationId,
                 eventId,
                 order.getId(),
                 order.getCustomerName(),
@@ -59,13 +63,13 @@ public class OrderService {
         eventPublisher.publishOrderCreated(event);
 
         // Transition to PROCESSING state
-        transitionState(order, OrderState.PROCESSING);
+        transitionState(order, OrderState.PROCESSING , correlationId);
 
         return order;
     }
 
     @Transactional
-    public void transitionState(Order order, OrderState newState)
+    public void transitionState(Order order, OrderState newState, String correlationId)
     {
         OrderState currentState = order.getState();
 
@@ -75,25 +79,25 @@ public class OrderService {
         order.setState(validatedState);
         orderRepository.save(order);
 
-        log.info("🔄 Order {} transitioned: {} → {}",
-                order.getId(), currentState, validatedState);
+        log.info("[{}] 🔄 Order {} transitioned: {} → {}",
+                correlationId, order.getId(), currentState, validatedState);
     }
 
     @Transactional
-    public void handlePaymentSuccess(Long orderId) {
+    public void handlePaymentSuccess(String correlationId, Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
 
-        transitionState(order, OrderState.CONFIRMED);
-        log.info("✅ Order {} confirmed", orderId);
+        transitionState(order, OrderState.CONFIRMED, correlationId);
+        log.info("[{}] ✅ Order {} confirmed", correlationId, orderId);
     }
 
     @Transactional
-    public void handlePaymentFailure(Long orderId) {
+    public void handlePaymentFailure(String correlationId, Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found: " + orderId));
 
-        transitionState(order, OrderState.FAILED);
-        log.error("❌ Order {} failed", orderId);
+        transitionState(order, OrderState.FAILED, correlationId);
+        log.error("[{}] ❌ Order {} failed", correlationId, orderId);
     }
 }

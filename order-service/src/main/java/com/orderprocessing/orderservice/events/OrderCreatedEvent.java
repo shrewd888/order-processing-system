@@ -9,6 +9,7 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 public class OrderCreatedEvent
 {
+    private String correlationId;
     private String eventId;
     private Long orderId;
     private String customerName;
