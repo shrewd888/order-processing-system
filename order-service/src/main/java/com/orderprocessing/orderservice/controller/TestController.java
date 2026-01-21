@@ -7,10 +7,7 @@ import com.orderprocessing.orderservice.events.OrderCreatedEvent;
 import com.orderprocessing.orderservice.model.OrderState;
 import com.orderprocessing.orderservice.service.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 
@@ -45,17 +42,18 @@ public class TestController {
         return "Published event " + eventId + " TWICE. Check logs for duplicate detection!";
     }
 
-    @PostMapping("/invalid-transition")
-    public String testInvalidTransition(@RequestParam Long orderId) {
+
+    @PostMapping("/invalid-transition/{orderId}")
+    public String testInvalidTransition(@PathVariable Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
 
         try {
-            // Try to go from CONFIRMED back to PENDING (invalid!)
+            // Try invalid transition: CONFIRMED → PENDING
             orderService.transitionState(order, OrderState.PENDING);
-            return "Transition succeeded (should not happen!)";
+            return "ERROR: Transition should have been blocked!";
         } catch (IllegalStateException e) {
-            return "Transition blocked: " + e.getMessage();
+            return "✅ Transition correctly blocked: " + e.getMessage();
         }
     }
 }
