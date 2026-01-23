@@ -14,12 +14,13 @@ public class EventPublisher {
 
     public void publishOrderCreated(OrderCreatedEvent event)
     {
+        String correlationId = event.getCorrelationId();
         String key = event.getOrderId().toString();  // Use orderId as key
 
-        log.info("📤 Publishing OrderCreatedEvent with key {}: {}", key, event);
+        log.info("[{}] 📤 Publishing OrderCreatedEvent with key {}: {}", correlationId, key, event);
 
         kafkaTemplate.send("order-created", key, event);
 
-        log.debug("✅ Event sent to partition determined by key: {}", key);
+        log.debug("[{}] ✅ Event sent to partition determined by key: {}", correlationId, key);
     }
 }

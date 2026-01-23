@@ -44,8 +44,10 @@ public class OrderController
     @PostMapping("/test/duplicate/{orderId}")
     public String testDuplicate(@PathVariable Long orderId) {
         String eventId = UUID.randomUUID().toString();
+        String correlationId = "corr-" + UUID.randomUUID().toString();
 
         OrderCreatedEvent event = new OrderCreatedEvent(
+                correlationId,
                 eventId,
                 orderId,
                 "Duplicate Test",

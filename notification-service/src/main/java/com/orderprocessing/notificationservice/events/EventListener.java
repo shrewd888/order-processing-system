@@ -5,6 +5,8 @@ import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.stereotype.Component;
 import lombok.extern.slf4j.Slf4j;
 
+import java.util.UUID;
+
 @Component
 @Slf4j
 public class EventListener {
@@ -18,12 +20,15 @@ public class EventListener {
             }
     )
     public void handlePaymentSuccess(@Payload PaymentSuccessEvent event) {
-        log.info("📥 Received PaymentSuccessEvent: {}", event);
+        String correlationId = event.getCorrelationId();
+        Long orderId = event.getOrderId();
+
+        log.info("[{}] 📥 Received PaymentSuccessEvent for order: {}", correlationId, orderId);
 
         // Simulate sending notification
-        sendSuccessNotification(event.getOrderId(), event.getAmount());
+        sendSuccessNotification(event.getCorrelationId(), event.getOrderId(), event.getAmount());
 
-        log.info("✅ Success notification sent for order: {}", event.getOrderId());
+        log.info("[{}] ✅ Success notification sent for order: {}", correlationId, orderId);
     }
 
     @KafkaListener(
@@ -35,23 +40,26 @@ public class EventListener {
             }
     )
     public void handlePaymentFailed(@Payload PaymentFailedEvent event) {
-        log.info("📥 Received PaymentFailedEvent: {}", event);
+        String correlationId = event.getCorrelationId();
+        Long orderId = event.getOrderId();
+
+        log.info("[{}] 📥 Received PaymentFailedEvent for order: {}", correlationId, orderId);
 
         // Simulate sending failure notification
-        sendFailureNotification(event.getOrderId(), event.getReason());
+        sendFailureNotification(event.getCorrelationId(), event.getOrderId(), event.getReason());
 
-        log.info("✅ Failure notification sent for order: {}", event.getOrderId());
+        log.info("[{}] ✅ Failure notification sent for order: {}", correlationId, orderId);
     }
 
-    private void sendSuccessNotification(Long orderId, Double amount) {
-        log.info("📧 Sending email: Order #{} confirmed! Amount: ${}", orderId, amount);
-        log.info("📱 Sending SMS: Your order #{} has been successfully processed!", orderId);
+    private void sendSuccessNotification(String correlationId, Long orderId, Double amount) {
+        log.info("[{}] 📧 Sending email: Order #{} confirmed! Amount: ${}", correlationId, orderId, amount);
+        log.info("[{}] 📱 Sending SMS: Your order #{} has been successfully processed!", correlationId, orderId);
         // In real app: call email service, SMS service, push notification, etc.
     }
 
-    private void sendFailureNotification(Long orderId, String reason) {
-        log.info("📧 Sending email: Order #{} failed. Reason: {}", orderId, reason);
-        log.info("📱 Sending SMS: Unfortunately, order #{} could not be processed.", orderId);
+    private void sendFailureNotification(String correlationId, Long orderId, String reason) {
+        log.info("[{}] 📧 Sending email: Order #{} failed. Reason: {}", correlationId, orderId, reason);
+        log.info("[{}] 📱 Sending SMS: Unfortunately, order #{} could not be processed.", correlationId, orderId);
         // In real app: call notification services
     }
 }

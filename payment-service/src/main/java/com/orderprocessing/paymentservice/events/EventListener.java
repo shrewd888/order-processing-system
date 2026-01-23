@@ -106,9 +106,9 @@ public class EventListener {
         boolean success = (orderId % 2 == 0);
 
         if (success) {
-            log.info("[{}] 💰 Payment charged successfully", correlationId);
+            log.info("[{}] 💰 Payment charged successfully for order {}", correlationId, orderId);
         } else {
-            log.error("[{}] 💸 Payment declined - insufficient funds", correlationId);
+            log.error("[{}] 💸 Payment declined for order {} - insufficient funds", correlationId, orderId);
         }
 
         return success;
@@ -123,6 +123,6 @@ public class EventListener {
                 "payment-service"
         );
         processedEventRepository.save(processed);
-        log.info("[{}] ✅ Marked event {} as processed", correlationId, eventId);
+        log.info("[{}] ✅ Marked order {} event {} as processed", correlationId, orderId, eventId);
     }
 }

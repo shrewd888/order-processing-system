@@ -10,6 +10,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @RestController
 @RequestMapping("/test")
@@ -26,8 +27,10 @@ public class TestController {
     public String testDuplicate(@RequestParam Long orderId) {
         // Generate a FIXED event ID (not random)
         String eventId = "TEST-DUPLICATE-" + orderId;
+        String correlationId = "corr-" + UUID.randomUUID().toString();
 
         OrderCreatedEvent event = new OrderCreatedEvent(
+                correlationId,
                 eventId,  // Same eventId for duplicates
                 orderId,
                 "Duplicate Test User",
@@ -47,10 +50,10 @@ public class TestController {
     public String testInvalidTransition(@PathVariable Long orderId) {
         Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new RuntimeException("Order not found"));
-
+        String correlationId = "corr-" + UUID.randomUUID().toString();
         try {
             // Try invalid transition: CONFIRMED → PENDING
-            orderService.transitionState(order, OrderState.PENDING);
+            orderService.transitionState(order, OrderState.PENDING, correlationId);
             return "ERROR: Transition should have been blocked!";
         } catch (IllegalStateException e) {
             return "✅ Transition correctly blocked: " + e.getMessage();

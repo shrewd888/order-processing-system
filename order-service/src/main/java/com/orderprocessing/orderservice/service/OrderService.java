@@ -44,12 +44,14 @@ public class OrderService {
     {
         // Generate correlation ID for distributed tracing
         String correlationId = "corr-" + UUID.randomUUID().toString();
+        Long orderId = order.getId();
+        OrderState orderState = order.getState();
 
         // New orders always start in PENDING state
         order.setState(OrderState.PENDING);
         order = orderRepository.save(order);
 
-        log.info("[{}] 🛒 Order created: {} in state: {}", correlationId, order.getId(), order.getState());
+        log.info("[{}] 🛒 Order created: {} in state: {}", correlationId, orderId, orderState);
         // Publish OrderCreatedEvent
         String eventId = UUID.randomUUID().toString();
         OrderCreatedEvent event = new OrderCreatedEvent(

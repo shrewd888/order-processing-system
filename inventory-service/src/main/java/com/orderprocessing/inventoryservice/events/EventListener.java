@@ -134,6 +134,6 @@ public class EventListener {
                 "inventory-service"
         );
         processedEventRepository.save(processed);
-        log.info("[{}] ✅ Marked event {} as processed", correlationId, eventId);
+        log.info("[{}] ✅ Marked order {} event {} as processed", correlationId, orderId, eventId);
     }
 }

@@ -14,15 +14,17 @@ public class EventPublisher {
 
     public void publishPaymentSuccess(PaymentSuccessEvent event)
     {
+        String correlationId = event.getCorrelationId();
         String key = event.getOrderId().toString();  // Use orderId as key
-        log.info("💳 Publishing PaymentSuccessEvent with key {}: {}", key, event);
+        log.info("[{}] 💳 Publishing PaymentSuccessEvent with key {}: {}", correlationId, key, event);
         kafkaTemplate.send("payment-success", key, event);
     }
 
     public void publishPaymentFailed(PaymentFailedEvent event)
     {
+        String correlationId = event.getCorrelationId();
         String key = event.getOrderId().toString();  // Use orderId as key
-        log.error("💥 Publishing PaymentFailedEvent with key {}: {}", key, event);
+        log.error("[{}] 💥 Publishing PaymentFailedEvent with key {}: {}", correlationId, key, event);
         kafkaTemplate.send("payment-failed", key, event);
     }
 }
