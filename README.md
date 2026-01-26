@@ -460,10 +460,10 @@ shrewd !!!
 ---
 
 **Built with ❤️ to showcase microservices architecture patterns**
-EOF
 
 
-# System Architecture: Create Architecture Diagram (Mermaid)
+
+# System Architecture: Create Architecture Diagram
 
 ## High-Level Architecture
 ```mermaid
@@ -633,7 +633,7 @@ graph TB
     IS -.No Direct DB Access.-> ODB
     PS -.No Direct DB Access.-> ODB
 ```
-EOF
+
 
 
 ## Simplified Architecture Diagrams
@@ -899,5 +899,5 @@ A: SAGA pattern triggers compensation - inventory gets released automatically.
 
 **Q: Can services be deployed independently?**
 A: Yes! Each service has its own code, database, and can be deployed separately.
-EOF
+
 
